@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pencil Puzzle Player</title>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">✏️</span>
+    <div>
+      <h1>Pencil Puzzle Player</h1>
+      <p class="sub">Play the <em>Pencil Puzzle Bench</em> puzzles — the benchmark 300 plus a 200-puzzle extra pack.</p>
+    </div>
+  </div>
+  <div class="progress" id="progress">
+    <div class="progress-ring" id="progressRing"><span id="progressPct">0%</span></div>
+    <div class="progress-text"><strong id="solvedCount">0</strong> / <span id="totalCount">300</span> solved</div>
+    <button id="resetProgress" class="link-btn" title="Clear your local progress">reset</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="filters">
+      <input id="search" class="search" type="search" placeholder="Search type… (e.g. slither)" />
+      <div class="filter-row">
+        <select id="typeFilter" class="select"><option value="">All types</option></select>
+        <select id="tierFilter" class="select">
+          <option value="">All difficulty</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <select id="sizeFilter" class="select"><option value="">All sizes</option></select>
+        <select id="sortFilter" class="select">
+          <option value="default">Default order</option>
+          <option value="area">Smallest first</option>
+          <option value="areaDesc">Largest first</option>
+          <option value="hardest">Sparsest solution</option>
+          <option value="aiHardest">Fewest AI solve it</option>
+          <option value="unsolved">Not solved by me</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <select id="packFilter" class="select">
+          <option value="">All puzzles (500)</option>
+          <option value="bench">Benchmark (300)</option>
+          <option value="extra">Extra pack (200)</option>
+        </select>
+        <select id="metricFilter" class="select" title="Which AI solve-rate to highlight (falls back to the other if missing)">
+          <option value="agentic">AI: agentic</option>
+          <option value="direct">AI: direct ask</option>
+        </select>
+      </div>
+      <label class="checkline"><input type="checkbox" id="hideSolved" /> Hide puzzles I've solved</label>
+    </div>
+    <div class="list-meta" id="listMeta"></div>
+    <ol class="puzzle-list" id="puzzleList"></ol>
+  </aside>
+
+  <main class="player-area">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-art">🧩</div>
+      <h2>Pick a puzzle to begin</h2>
+      <p>Solve it with mouse &amp; keyboard (same controls as <a href="https://puzz.link" target="_blank" rel="noopener">puzz.link</a>).<br/>
+      Click <b>Check</b> any time. Your progress and best times are saved locally.</p>
+    </div>
+
+    <section class="player hidden" id="playerSection">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <h2 id="puzzleTitle">—</h2>
+          <span class="badge" id="puzzleBadge"></span>
+        </div>
+        <div class="toolbar-right">
+          <span class="timer" id="timer">0:00</span>
+          <button id="btnHint" class="btn ghost" title="Reveal one correct move">💡 Hint</button>
+          <button id="btnUndo" class="btn ghost" title="Undo (Ctrl+Z)">↶ Undo</button>
+          <button id="btnReset" class="btn ghost" title="Clear all your input">Reset</button>
+          <button id="btnZoomOut" class="btn ghost square" title="Zoom out">−</button>
+          <button id="btnZoomIn" class="btn ghost square" title="Zoom in">+</button>
+          <button id="btnCheck" class="btn primary" title="Validate the board">Check</button>
+          <button id="btnSolve" class="btn ghost danger" title="Reveal the full solution">Solve</button>
+        </div>
+      </div>
+      <div class="check-message" id="checkMessage"></div>
+      <div class="board-wrap">
+        <div id="puzzleContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="infopanel" id="infoPanel">
+    <div class="panel-block">
+      <h3>How to play</h3>
+      <p class="controls-hint">Drag or left-click to draw · right-click to mark/cross · number keys to enter digits · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> check.</p>
+      <p class="rules" id="rulesText">Select a puzzle to see its rules.</p>
+      <a id="puzzlinkLink" class="ext-link hidden" target="_blank" rel="noopener">Open on puzz.link ↗</a>
+    </div>
+
+    <div class="panel-block" id="statsBlock">
+      <h3>Puzzle stats</h3>
+      <table class="stats-table">
+        <tbody>
+          <tr><td>Grid</td><td id="statGrid">—</td></tr>
+          <tr><td>Difficulty</td><td id="statTier">—</td></tr>
+          <tr><td>Solution moves</td><td id="statMoves">—</td></tr>
+          <tr><td>AI solved · agentic</td><td id="statAIa">—</td></tr>
+          <tr><td>AI solved · direct ask</td><td id="statAId">—</td></tr>
+          <tr><td>Your best</td><td id="statBest">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel-block" id="aiBlock">
+      <h3>You vs. AI</h3>
+      <p class="muted" id="aiSummary">—</p>
+      <ol class="ai-list" id="aiList"></ol>
+    </div>
+
+    <div class="panel-block">
+      <h3>Rule examples</h3>
+      <div class="examples" id="ruleExamples"><p class="muted">Examples appear here for the selected puzzle type.</p></div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal" id="completeModal">
+  <div class="modal-card">
+    <div class="confetti">🎉</div>
+    <h2>Solved!</h2>
+    <p id="modalText" class="muted">Nice work.</p>
+    <div class="modal-rank" id="modalRank"></div>
+    <div class="modal-actions">
+      <button class="btn primary" id="modalNext">Next puzzle →</button>
+      <button class="btn ghost" id="modalClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/pzprjs/dist/js/pzpr.js"></script>
+<script src="data/puzzles.js"></script>
+<script src="data/solutions.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

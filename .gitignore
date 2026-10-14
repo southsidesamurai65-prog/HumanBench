@@ -1,0 +1,13 @@
+# local notes (not part of the repo)
+think.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+.venv/
