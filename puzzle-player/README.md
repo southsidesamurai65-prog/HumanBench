@@ -54,11 +54,21 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000> in your browser.
 
-> **Use `localhost` or `127.0.0.1` — not `0.0.0.0`.** If you have a system/browser
-> proxy enabled, the proxy bypass list normally includes `localhost`/`127.0.0.1` but
-> **not** `0.0.0.0`, so `http://0.0.0.0:8000/` gets routed to the proxy and fails with
-> a generic "page isn't working / may have moved" error. `serve.sh` binds to
-> `127.0.0.1` and opens the right URL for you.
+> **Use `localhost` or `127.0.0.1` — not `0.0.0.0`.** `0.0.0.0` is a *listen* address
+> ("all interfaces"), not a normal destination, and it is **not** covered by the browser's
+> automatic loopback proxy bypass — so a system/browser proxy grabs it and the page fails
+> with a generic "page isn't working / may have moved" error. `localhost`/`127.0.0.1` *are*
+> bypassed by default, so they just work.
+>
+> A served web page **cannot** change your browser's proxy settings (that's a client-side
+> config), so if `0.0.0.0` (or even loopback) is being proxied, do one of:
+> - Use `http://127.0.0.1:8000/` — browsers bypass loopback automatically.
+> - Add `localhost`, `127.0.0.1`, `0.0.0.0` to your **proxy tool's bypass list** /
+>   OS proxy exceptions.
+> - Launch the browser with an explicit bypass, e.g. Chromium/Chrome:
+>   `google-chrome --proxy-bypass-list="localhost;127.0.0.1;0.0.0.0;<local>" http://127.0.0.1:8000`.
+>   `serve.sh` already tries exactly this when it opens the browser.
+> - Phone (Wi-Fi) users: use the printed **LAN IP** (e.g. `http://192.168…:8000`), never `0.0.0.0`.
 
 ## Android / phone
 
