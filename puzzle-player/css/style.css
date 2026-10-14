@@ -113,9 +113,13 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
-.toolbar-left { display: flex; align-items: center; gap: 10px; }
-.toolbar-left h2 { font-size: 17px; }
-.toolbar-right { display: flex; align-items: center; gap: 8px; }
+.toolbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.toolbar-left h2 { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toolbar-right {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; justify-content: flex-end; flex: 1 1 auto; min-width: 0;
+}
+.toolbar-right .btn { flex: 0 0 auto; }
 .badge {
   font-size: 11px; padding: 2px 9px; border-radius: 20px;
   border: 1px solid var(--border); color: var(--muted); text-transform: capitalize;
