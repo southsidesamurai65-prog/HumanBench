@@ -607,8 +607,10 @@
   if (m) selectPuzzle(decodeURIComponent(m[1]));
   window.__pp_select = selectPuzzle;
 
-  // offline / installable (PWA)
-  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  // offline / installable (PWA). Skipped inside the native Capacitor app,
+  // which already bundles all assets locally.
+  var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if ("serviceWorker" in navigator && location.protocol !== "file:" && !isNative) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("sw.js").catch(function () {});
     });

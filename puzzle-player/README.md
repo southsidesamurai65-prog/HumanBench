@@ -84,21 +84,42 @@ so it's playable but not installable. To actually *install* it:
 - Or expose your local server over HTTPS with a tunnel, e.g. `cloudflared tunnel --url
   http://localhost:8000` (or ngrok), and open the HTTPS URL on the phone.
 
-### 3. A real APK (optional)
+### 3. Build the Android app (APK)
 
-The app is plain static web, so you can wrap it with [Capacitor](https://capacitorjs.com):
+A ready-to-open **Capacitor** Android project is included in `android/`. It bundles the
+whole web app locally (no internet needed to play).
 
+**Requirements on the build machine:** a recent **Android Studio** (compileSdk 36 → AS
+Ladybug/2024.2+) with **JDK 17+**, and the Android SDK. Node is *not* required — the web
+assets are already committed under `android/app/src/main/assets/public/`.
+
+**Option A — Android Studio (easiest):**
+1. Open the `android/` folder as a project (not the repo root).
+2. Let Gradle sync (it downloads the Gradle/AGP versions it needs).
+3. **Build → Build Bundle(s)/APK(s) → Build APK(s)**.
+   Output: `android/app/build/outputs/apk/debug/app-debug.apk` — copy it to the phone and
+   install (enable "install unknown apps").
+
+**Option B — command line** (with `ANDROID_HOME` set):
 ```bash
-npm i -D @capacitor/cli @capacitor/core @capacitor/android
-npx cap init "Pencil Puzzle" com.example.pencilpuzzle --web-dir=.
-npx cap add android
-npx cap sync
-npx cap open android      # or: cd android && ./gradlew assembleDebug
+cd android && ./gradlew assembleDebug
 ```
 
-This needs the Android SDK + JDK installed (not included here). The
-[Trusted Web Activity](https://developer.chrome.com/docs/android/trusted-web-activity)
-route (Bubblewrap) from a hosted HTTPS URL also works and is lighter.
+**Option C — full pipeline** (rebuild web + sync + gradle; needs Node + SDK):
+```bash
+./scripts/build-apk.sh
+```
+
+**After changing the web app** (if you have Node):
+```bash
+npm install         # first time only
+npm run sync        # rebuild www/ and copy it into android/
+```
+The app loads `https://localhost` in a WebView (a secure context), so it behaves exactly
+like the browser version, offline, with touch input.
+
+> The generated Android icons and splash screens come from `make_android_icons.py`
+> (re-run it if you change `android/` or the design).
 
 ## Controls
 
@@ -128,8 +149,14 @@ puzzle-player/
 │   ├── solutions.js            # generated: move solutions for hint/solve
 │   └── site_puzzles.json       # source: https://ppbench.com/data/puzzles.json
 ├── vendor/pzprjs/              # the puzzle engine (from the ppbench repo, patched)
+├── android/                    # Capacitor Android project (open this in Android Studio)
+├── scripts/build-web.sh        # assemble www/ (runtime files only)
+├── scripts/build-apk.sh        # web + sync + gradle assembleDebug
+├── package.json                # Capacitor deps + npm scripts
+├── capacitor.config.json       # appId / appName / webDir=www
 ├── build_data.py               # regenerates data/*.js
-├── make_icons.py               # regenerates icons/
+├── make_icons.py               # regenerates icons/ (PWA)
+├── make_android_icons.py       # regenerates android launcher icons + splash
 ├── patch_pzpr.py               # patches pzpr.js (see below)
 ├── golden_300.jsonl            # source: ppbench bundled solutions for the 300
 ├── extra_puzzles.jsonl         # source: 200 extra puzzles (XOR-encoded solutions)

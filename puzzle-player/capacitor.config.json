@@ -1,0 +1,11 @@
+{
+  "appId": "com.approximate.pencilpuzzle",
+  "appName": "Pencil Puzzle",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

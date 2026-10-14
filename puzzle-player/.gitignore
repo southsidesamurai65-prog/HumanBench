@@ -1,0 +1,13 @@
+# node / capacitor
+node_modules/
+www/
+
+# android build outputs (keep the project + bundled web assets, ignore churn)
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+android/.idea/
+*.iml
+.gradle/
