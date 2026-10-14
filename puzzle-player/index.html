@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Pencil Puzzle Player</title>
-<link rel="icon" href="data:," />
+<meta name="theme-color" content="#0f1115" />
+<meta name="description" content="Play 500 Pencil Puzzle Bench puzzles offline, with hints, solutions and AI comparisons." />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Pencil Puzzle" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 <header class="topbar">
+  <button id="menuBtn" class="icon-btn menu-btn" aria-label="Open puzzle list">☰</button>
   <div class="brand">
     <span class="logo">✏️</span>
     <div>
@@ -22,6 +31,8 @@
     <button id="resetProgress" class="link-btn" title="Clear your local progress">reset</button>
   </div>
 </header>
+
+<div class="scrim" id="scrim"></div>
 
 <div class="layout">
   <aside class="sidebar">

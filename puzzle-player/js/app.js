@@ -221,7 +221,9 @@
   function computeCell() {
     var wrap = document.querySelector(".board-wrap");
     var availW = wrap ? wrap.clientWidth - 24 : 600;
-    var availH = Math.max(360, window.innerHeight - 260);
+    var availH = (wrap && wrap.clientHeight > 220)
+      ? wrap.clientHeight - 24
+      : Math.max(320, window.innerHeight - 260);
     var byW = Math.floor((availW * zoom) / current.width);
     var byH = Math.floor((availH * zoom) / current.height);
     return Math.max(10, Math.min(64, Math.min(byW, byH)));
@@ -307,7 +309,15 @@
     Array.prototype.forEach.call(document.querySelectorAll(".puzzle-item"), function (el) {
       el.classList.toggle("active", el.dataset.id === id);
     });
+
+    closeNav();
   }
+
+  // ---------------------------------------------------------------- mobile nav
+  function closeNav() { document.body.classList.remove("nav-open"); }
+  function toggleNav() { document.body.classList.toggle("nav-open"); }
+  $("menuBtn").addEventListener("click", toggleNav);
+  $("scrim").addEventListener("click", closeNav);
 
   function checkCompletion() {
     if (!puzzle || completedNow || revealed) return;
@@ -596,4 +606,11 @@
   var m = /(?:^|[#&])puz=([^&]+)/.exec(location.hash);
   if (m) selectPuzzle(decodeURIComponent(m[1]));
   window.__pp_select = selectPuzzle;
+
+  // offline / installable (PWA)
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
 })();
