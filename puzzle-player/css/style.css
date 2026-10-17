@@ -185,6 +185,22 @@ a:hover { text-decoration: underline; }
 .rule-example-label.ok { color: var(--good); }
 .rule-example-label.ng { color: var(--bad); }
 
+/* ---------------- sudoku digit picker ---------------- */
+.digit-pad {
+  position: fixed; z-index: 70;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  padding: 8px; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 16px 44px rgba(0,0,0,.55);
+}
+.digit-pad.hidden { display: none; }
+.digit-pad button {
+  width: 46px; height: 46px; font-size: 19px; font-weight: 700;
+  border-radius: 9px; cursor: pointer; color: var(--text);
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.digit-pad button:hover { border-color: var(--accent); background: rgba(110,168,254,.12); }
+.digit-pad button.clear { grid-column: 1 / -1; height: 34px; font-size: 12.5px; color: #fca5a5; }
+
 /* ---------------- modal ---------------- */
 .modal {
   position: fixed; inset: 0; background: rgba(5,7,11,.72); backdrop-filter: blur(4px);

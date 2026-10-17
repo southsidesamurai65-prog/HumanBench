@@ -231,7 +231,24 @@
 
   function applyCanvasSize() {
     if (!puzzle) return;
-    try { puzzle.setCanvasSizeByCellSize(computeCell()); } catch (e) {}
+    var wrap = document.querySelector(".board-wrap");
+    var cell = computeCell();
+    try { puzzle.setCanvasSizeByCellSize(cell); } catch (e) { return; }
+    // Border-type boards (e.g. slitherlink) are one cell wider/taller than the
+    // grid, so the rendered SVG can exceed the container and clip the right/bottom
+    // edge. Measure the result and shrink to fit.
+    if (!wrap) return;
+    var svg = wrap.querySelector("svg");
+    if (!svg) return;
+    var availW = wrap.clientWidth - 20;
+    var availH = ((wrap.clientHeight > 220 ? wrap.clientHeight : window.innerHeight - 260)) - 20;
+    var w = parseFloat(svg.getAttribute("width")) || 0;
+    var h = parseFloat(svg.getAttribute("height")) || 0;
+    if (w > 0 && h > 0 && (w > availW || h > availH)) {
+      var ratio = Math.min(availW / w, availH / h);
+      var cell2 = Math.max(8, Math.floor(cell * ratio));
+      if (cell2 < cell) { try { puzzle.setCanvasSizeByCellSize(cell2); } catch (e) {} }
+    }
   }
 
   function startTimer() {
@@ -292,7 +309,8 @@
       puzzle = new pzpr.Puzzle(container, { type: "player" });
       puzzle.once("ready", function () {
         try { puzzle.setMode("play"); } catch (e) {}
-        try { puzzle.setCanvasSizeByCellSize(computeCell()); } catch (e) {}
+        applyCanvasSize();
+        setTimeout(applyCanvasSize, 50); // re-fit after the engine's own render
       });
       puzzle.open(p.pzpr_url);
       window.__pp_puzzle = puzzle;
@@ -311,6 +329,7 @@
     });
 
     closeNav();
+    closeDigitPad();
   }
 
   // ---------------------------------------------------------------- mobile nav
@@ -577,6 +596,85 @@
       store.solved = {}; saveStore(); renderList(); updateProgress();
     }
   });
+
+  // ---------------------------------------------------------------- sudoku digit picker
+  // Tapping a sudoku cell shows a 1-9 pad instead of cycling digits by repeated clicks.
+  var digitPad = $("digitPad");
+  var pendingCell = null;
+
+  function buildDigitPad() {
+    if (digitPad.dataset.built) return;
+    for (var n = 1; n <= 9; n++) {
+      (function (num) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = num;
+        btn.addEventListener("click", function (ev) { ev.stopPropagation(); setCellDigit(num); });
+        digitPad.appendChild(btn);
+      })(n);
+    }
+    var clr = document.createElement("button");
+    clr.type = "button";
+    clr.textContent = "clear";
+    clr.className = "clear";
+    clr.addEventListener("click", function (ev) { ev.stopPropagation(); setCellDigit(0); });
+    digitPad.appendChild(clr);
+    digitPad.dataset.built = "1";
+  }
+
+  function openDigitPad(x, y, col, row) {
+    buildDigitPad();
+    pendingCell = { col: col, row: row };
+    try {
+      puzzle.cursor.init(2 * col + 1, 2 * row + 1);
+      if (puzzle.cursor.draw) puzzle.cursor.draw();
+    } catch (e) {}
+    digitPad.classList.remove("hidden");
+    var pw = digitPad.offsetWidth || 170, ph = digitPad.offsetHeight || 210;
+    digitPad.style.left = Math.max(8, Math.min(x + 6, window.innerWidth - pw - 8)) + "px";
+    digitPad.style.top = Math.max(8, Math.min(y + 6, window.innerHeight - ph - 8)) + "px";
+  }
+
+  function closeDigitPad() { digitPad.classList.add("hidden"); pendingCell = null; }
+
+  function setCellDigit(n) {
+    if (!pendingCell || !puzzle) return;
+    var x = 2 * pendingCell.col + 1, y = 2 * pendingCell.row + 1;
+    try {
+      if (n === 0) {
+        var prev = puzzle.mouse.inputMode;
+        try { puzzle.mouse.setInputMode("clear"); } catch (e) {}
+        puzzle.mouse.inputPath("left", x, y);
+        try { puzzle.mouse.setInputMode(prev || "auto"); } catch (e) {}
+      } else {
+        puzzle.mouse.inputPath("left", x, y);
+        puzzle.key.inputKeys(String(n));
+      }
+    } catch (e) {}
+    closeDigitPad();
+  }
+
+  function onBoardPointerDown(e) {
+    if (!current || current.type !== "sudoku" || !puzzle) return;
+    if (e.button !== undefined && e.button !== 0) return; // let right/middle-click through
+    var addr;
+    try { addr = puzzle.mouse.getBoardAddress(e); } catch (err) { return; }
+    if (!addr || isNaN(addr.bx) || isNaN(addr.by)) return;
+    var col = Math.floor(addr.bx / 2), row = Math.floor(addr.by / 2);
+    if (col < 0 || row < 0 || col >= current.width || row >= current.height) { closeDigitPad(); return; }
+    e.preventDefault();
+    e.stopPropagation();
+    openDigitPad(e.clientX, e.clientY, col, row);
+  }
+  $("puzzleContainer").addEventListener("pointerdown", onBoardPointerDown, true);
+  $("puzzleContainer").addEventListener("click", function (e) {
+    if (current && current.type === "sudoku") { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  document.addEventListener("pointerdown", function (e) {
+    if (!digitPad.classList.contains("hidden") && !digitPad.contains(e.target)) closeDigitPad();
+  }, true);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDigitPad(); });
+  window.addEventListener("resize", closeDigitPad);
 
   // ---------------------------------------------------------------- events
   $("search").addEventListener("input", function (e) { filters.search = e.target.value; renderList(); });
