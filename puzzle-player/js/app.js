@@ -654,13 +654,37 @@
     closeDigitPad();
   }
 
+  // Map a viewport point to a grid cell using the SVG geometry + painter metrics
+  // (more robust than the event's offsetX, which depends on the event target).
+  function cellFromClient(cx, cy) {
+    var wrap = document.querySelector(".board-wrap");
+    var svg = wrap ? wrap.querySelector("svg") : null;
+    var pt = puzzle && puzzle.painter;
+    if (svg && pt && pt.bw && pt.bh) {
+      var rect = svg.getBoundingClientRect();
+      var wAttr = parseFloat(svg.getAttribute("width")) || rect.width;
+      var scale = rect.width ? rect.width / wAttr : 1;
+      var bx = ((cx - rect.left) / scale - pt.x0) / pt.bw;
+      var by = ((cy - rect.top) / scale - pt.y0) / pt.bh;
+      if (!isNaN(bx) && !isNaN(by)) return { col: Math.floor(bx / 2), row: Math.floor(by / 2) };
+    }
+    return null;
+  }
+
   function onBoardPointerDown(e) {
     if (!current || current.type !== "sudoku" || !puzzle) return;
     if (e.button !== undefined && e.button !== 0) return; // let right/middle-click through
-    var addr;
-    try { addr = puzzle.mouse.getBoardAddress(e); } catch (err) { return; }
-    if (!addr || isNaN(addr.bx) || isNaN(addr.by)) return;
-    var col = Math.floor(addr.bx / 2), row = Math.floor(addr.by / 2);
+    var cell = cellFromClient(e.clientX, e.clientY);
+    if (!cell) {
+      try {
+        var addr = puzzle.mouse.getBoardAddress(e);
+        if (addr && !isNaN(addr.bx) && !isNaN(addr.by)) {
+          cell = { col: Math.floor(addr.bx / 2), row: Math.floor(addr.by / 2) };
+        }
+      } catch (err) {}
+    }
+    if (!cell) return;
+    var col = cell.col, row = cell.row;
     if (col < 0 || row < 0 || col >= current.width || row >= current.height) { closeDigitPad(); return; }
     e.preventDefault();
     e.stopPropagation();

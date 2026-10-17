@@ -32,4 +32,4 @@ echo "Ctrl+C to stop."
 
 ( sleep 1; open_browser "$URL" ) 2>/dev/null || true
 
-exec python3 -m http.server "$PORT" --bind 127.0.0.1
+exec python3 "$(dirname "$0")/devserver.py" "$PORT" 127.0.0.1
